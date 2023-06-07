@@ -1,4 +1,7 @@
 import math
+import numpy as np
+import torch
+import torch.nn as nn
 import pandas as pd
 
 from exp.exp_basic import Exp_Basic
@@ -8,19 +11,10 @@ from data.loadData_distribution import Dataset_Load, Dataset_Pred
 from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 
-import numpy as np
-from sklearn.inspection import permutation_importance
-from sklearn.inspection import PartialDependenceDisplay
-import torch.nn as nn
-
-import torch
-import torch.nn as nn
-
 import os
 import time
 
 import warnings
-
 warnings.filterwarnings('ignore')
 
 
@@ -71,38 +65,24 @@ class Exp_Adaboost(Exp_Basic):
 
     def train(self, setting):
         args = self.args
-
+        
+        #get data
         Data = _get_data(args=args, flag='train')[0]
         dx, dy = Data[0], Data[1]
         # print(columns)
-
+        
+        #split data into train and test
         train_x, test_x, train_y, test_y = train_test_split(dx, dy, test_size=0.2, random_state=args.seed)
 
+        #build model
         # model = self._build_model(self.seed, self.material)
         self.regression.fit(train_x, train_y)
-        #只能在jupyter上运行程序
-        # perm = PermutationImportance(self.regression, random_state=1).fit(test_x, test_y)
-        # eli5.show_weights(perm, feature_names=test_x.columns.tolist())
-        #multiClassifier 没有feature_importances_属性
-        # feature_importance = self.regression.feature_importances_
-        # print(feature_importance)
-        weight = permutation_importance(self.regression, test_x, test_y, n_repeats=5, random_state=args.seed)
-        feature_names = list(train_x.head())
-        PartialDependenceDisplay.from_estimator(self.regression, test_x, feature_names, kind='average', centered=True,
-                                                n_cols=5, file_name=setting, target=0)  #when particial dependency is multiple, target must
-                                                                    # be set to an output.
 
-
-        # print('weight', weight)
-
+        Ecalculate train and test r2 score
         R2train = self.regression.score(train_x, train_y)
         R2test = self.regression.score(test_x, test_y)
 
         print("|| Train R2: {0:.7f} Test R2: {1:.7f}".format(R2train, R2test))
-
-
-
-        # weights.append(weight)
 
         return R2train, R2test, weight, self.regression
 
@@ -122,15 +102,14 @@ class Exp_Predict(Exp_Basic):
 
         preds = np.array(Ypredicted)
         # print(preds.shape)      #(259200, 2)
-        pred_lnRR_N2O = preds[:, 0].reshape(360, -1)
-        pred_N2O = preds[:, 1].reshape(360, -1)
+        pred_lnRR = preds[:, 0].reshape(360, -1)
+        pred_substence = preds[:, 1].reshape(360, -1)
 
-        pred_lnRR_N2O = pred_lnRR_N2O * landcover
-        pred_N2O = pred_N2O * landcover
-        # print('preds shape', preds.shape)
+        pred_lnRR = pred_lnRR * landcover
+        pred_substence = pred_substence * landcover
 
         # np.save(folder_path + str(args.seed) + '_real_prediction', preds)
 
-        return pred_lnRR_N2O, pred_N2O
+        return pred_lnRR, pred_substence
 
 
