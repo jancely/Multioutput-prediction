@@ -46,10 +46,10 @@ class Exp_Adaboost(Exp_Basic):
 
     def _build_model(self, random_state, material):
         mate_dict = {
-            'SOC': {'n_estimators': 100, 'random_state': random_state, 'max_depth': 50},  #已确定
-            'NL': {'n_estimators': 21, 'random_state': random_state, 'max_depth': 13},    #已确定
-            'CO2': {'n_estimators': 37, 'random_state': random_state, 'max_depth': 13},
-            'N2O': {'n_estimators': 59, 'random_state': random_state, 'max_depth': 9},
+            'SOC': {'n_estimators': 100, 'random_state': random_state, 'max_depth': 13},  
+            'NL': {'n_estimators': 21, 'random_state': random_state, 'max_depth': 7},    
+            'CO2': {'n_estimators': 50, 'random_state': random_state, 'max_depth': 13},
+            'N2O': {'n_estimators': 37, 'random_state': random_state, 'max_depth': 7},
         }
         args_info = mate_dict[material]
         estimators = args_info['n_estimators']
@@ -66,13 +66,20 @@ class Exp_Adaboost(Exp_Basic):
     def train(self, setting):
         args = self.args
         
+        test_dict = {
+            'SOC': 0.2,  #已确定 90 13
+            'NL':  0.25,    #已确定  21  7  25 8
+            'CO2': 0.2,  #已确定
+            'N2O': 0.2
+        }
+        
         #get data
         Data = _get_data(args=args, flag='train')[0]
         dx, dy = Data[0], Data[1]
         # print(columns)
         
         #split data into train and test
-        train_x, test_x, train_y, test_y = train_test_split(dx, dy, test_size=0.2, random_state=args.seed)
+        train_x, test_x, train_y, test_y = train_test_split(dx, dy, test_size=test_dict[self.material], random_state=args.seed)
 
         #build model
         # model = self._build_model(self.seed, self.material)
