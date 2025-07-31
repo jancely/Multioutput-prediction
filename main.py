@@ -68,8 +68,17 @@ checkpoint_path = os.path.join(args.checkpoints, setting)
 if not os.path.exists(checkpoint_path):
     os.makedirs(checkpoint_path)
 
+if target[1] == 'SOC':
+    seed = 78150
+elif target[1] == 'NL':
+    seed = 1025
+elif target[1] == 'CO2':
+    seed = 700
+else:
+    seed = 29
+
 for i in range(args.random_state):
-    args.seed = i * 15 + 1
+    args.seed = seed
     args.material = args.target[1]
     exp = Exp(args)  # set experiments
     print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
